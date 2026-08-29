@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Select, and_, func, or_, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from app.models import Department, Employee, SalaryRecord
 from app.schemas.employee import EmployeeCreate, EmployeeUpdate
@@ -18,7 +18,11 @@ SORTABLE = {
 
 
 def get_employee(session: Session, employee_id: int) -> Employee | None:
-    return session.get(Employee, employee_id)
+    return session.scalar(
+        select(Employee)
+        .options(selectinload(Employee.salary_records), joinedload(Employee.department))
+        .where(Employee.id == employee_id)
+    )
 
 
 def list_employees(

@@ -58,7 +58,10 @@ export default function Dashboard() {
           {dist.isLoading ? <p className="muted">Loading…</p> : null}
           {dist.data ? (
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={dist.data.buckets.map((b) => ({ name: compact(b.bucket_usd), count: b.count }))}>
+              <BarChart
+                accessibilityLayer={false}
+                data={dist.data.buckets.map((b) => ({ name: compact(b.bucket_usd), count: b.count }))}
+              >
                 <CartesianGrid stroke="#d4cbb8" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
@@ -73,7 +76,7 @@ export default function Dashboard() {
           {trend.isLoading ? <p className="muted">Loading…</p> : null}
           {trend.data ? (
             <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={trend.data.points}>
+              <LineChart accessibilityLayer={false} data={trend.data.points}>
                 <CartesianGrid stroke="#d4cbb8" vertical={false} />
                 <XAxis dataKey="as_of" tick={{ fontSize: 10 }} />
                 <YAxis tickFormatter={(v: number) => compact(String(v))} tick={{ fontSize: 11 }} />

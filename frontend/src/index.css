@@ -72,6 +72,7 @@ label { display: grid; gap: 0.25rem; font-size: 0.8rem; color: var(--ink-muted);
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 .panel h2 { margin: 0 0 0.75rem; font-size: 1rem; }
 
+.table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 th, td { text-align: left; padding: 0.45rem 0.35rem; border-bottom: 1px solid var(--rule); }
 th { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-muted); }
@@ -91,7 +92,19 @@ th { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; colo
 
 @media (max-width: 900px) {
   .app-frame { grid-template-columns: 1fr; }
-  .rail { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    padding: 0.85rem 1rem;
+  }
+  .rail nav { display: flex; gap: 1rem; }
+  .rail .ghost { margin-left: auto; }
   .stat-row, .grid-2, .filters { grid-template-columns: 1fr 1fr; }
   .stage { padding: 1.2rem; }
+}
+@media (max-width: 420px) {
+  .stat-row, .filters { grid-template-columns: 1fr; }
 }

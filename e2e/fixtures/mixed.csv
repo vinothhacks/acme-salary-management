@@ -1,0 +1,3 @@
+employee_code,full_name,email,country_code,department,job_title,band,employment_type,hire_date,base_amount,bonus_amount,allowances_amount,currency,effective_from,revision_reason,status
+ACME-IMP01,New Hire,new.hire@acme.example,US,Engineering,Analyst,IC2,full_time,2024-03-01,80000,4000,0,USD,2024-03-01,,active
+ACME-BAD,Nope,nope@acme.example,US,NotADept,Analyst,IC2,full_time,2024-03-01,-5,0,0,USD,2024-03-01,,active

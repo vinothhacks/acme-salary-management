@@ -63,7 +63,10 @@ async def employees_import(
     session: Session = Depends(get_db),
     file: UploadFile = File(...),
 ) -> ImportResult:
-    raw = (await file.read()).decode("utf-8-sig")
+    try:
+        raw = (await file.read()).decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail="File must be UTF-8 CSV") from exc
     return import_csv(session, raw)
 
 
@@ -169,7 +172,7 @@ def employee_detail(
     employee = get_employee(session, employee_id)
     if employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
-    department = session.get(Department, employee.department_id)
+    department = employee.department
     if department is None:
         raise HTTPException(status_code=404, detail="Department not found")
     history = sorted(employee.salary_records, key=lambda row: row.effective_from, reverse=True)
