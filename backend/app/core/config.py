@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     secret_key: str = "dev-only-change-me"
     session_cookie_name: str = "acme_session"
     cors_origins: str = "http://localhost:5173"
-    hr_email: str = "hr@acme.test"
+    hr_email: str = "hr@acme.example"
     hr_password: str = "acme-hr-change-me"
 
     @property

@@ -160,7 +160,7 @@ def seed(session: Session, *, count: int = DEFAULT_COUNT, reset: bool = False) -
         employee = Employee(
             employee_code=f"ACME-{i:05d}",
             full_name=f"{first} {last}",
-            email=f"{first.lower()}.{last.lower()}.{i}@acme.test",
+            email=f"{first.lower()}.{last.lower()}.{i}@acme.example",
             country_code=country,
             department_id=dept.id,
             job_title=f"{TITLES[band]} {dept.name.rstrip('s')}",
