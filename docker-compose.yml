@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: acme
+      POSTGRES_PASSWORD: acme
+      POSTGRES_DB: acme_salary
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acme -d acme_salary"]
+      interval: 5s
+      timeout: 5s
+      retries: 8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://acme:acme@db:5432/acme_salary
+      SECRET_KEY: compose-dev-only
+      CORS_ORIGINS: http://localhost:5173
+      HR_EMAIL: hr@acme.test
+      HR_PASSWORD: acme-hr-change-me
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ui:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: http://localhost:8000
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
