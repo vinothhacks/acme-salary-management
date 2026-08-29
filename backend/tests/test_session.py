@@ -4,7 +4,12 @@ from pathlib import Path
 from sqlalchemy import text
 
 from app.core.config import Settings
-from app.db.session import make_engine, make_session_factory, session_dependency
+from app.db.session import (
+    make_engine,
+    make_session_factory,
+    normalize_database_url,
+    session_dependency,
+)
 
 
 def test_session_factory_executes() -> None:
@@ -36,3 +41,10 @@ def test_file_sqlite_allows_concurrent_sessions(tmp_path: Path) -> None:
         futures = [pool.submit(ping) for _ in range(4)]
         assert [f.result(timeout=5) for f in as_completed(futures)] == [1, 1, 1, 1]
     engine.dispose()
+
+
+def test_normalize_render_postgres_url() -> None:
+    assert (
+        normalize_database_url("postgres://acme:secret@dpg-xx:5432/acme_salary")
+        == "postgresql+psycopg://acme:secret@dpg-xx:5432/acme_salary"
+    )

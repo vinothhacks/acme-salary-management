@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
+from app.db.session import normalize_database_url
 from app.models import Department, Employee, FxRate, SalaryRecord  # noqa: F401
 
 config = context.config
@@ -18,7 +19,7 @@ def _url() -> str:
     configured = config.get_main_option("sqlalchemy.url")
     if configured:
         return configured
-    return get_settings().database_url.replace("%", "%%")
+    return normalize_database_url(get_settings().database_url).replace("%", "%%")
 
 
 def run_migrations_offline() -> None:

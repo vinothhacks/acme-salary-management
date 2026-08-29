@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     hr_email: str = "hr@acme.example"
     hr_password: str = "acme-hr-change-me"
+    session_https_only: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

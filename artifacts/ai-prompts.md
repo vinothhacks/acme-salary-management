@@ -13,3 +13,4 @@ Real prompts and what was accepted, rewritten, or rejected. Evidence of intentio
 | 2026-08-29 | Paper/ink UI for dashboard, directory, detail, import | Accepted custom CSS over full shadcn install to keep the visual system tight. |
 | 2026-08-29 | Dashboard hang on 10k SQLite | File SQLite used StaticPool; four analytics threads deadlocked. Pool only for :memory:. |
 | 2026-08-29 | Playwright + Chrome DevTools budgets | Accepted. LCP/CLS under budget; Lighthouse a11y 93. CI smoke matches MCP flow. |
+| 2026-08-29 | Live URL via Render MCP + Vercel MCP | Render plugin not in this session's MCP catalog. Added Blueprint + prod cookie/CORS; Vercel for UI. |
