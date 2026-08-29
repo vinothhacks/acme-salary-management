@@ -10,3 +10,15 @@
 
 List uses a single join to department plus an outer join to the open salary
 row. No per-row queries.
+
+## Phase 4 — analytics on 10,000 seeded rows (SQLite)
+
+| Endpoint | median | p95 | Budget |
+|---|---|---|---|
+| `/analytics/summary` | 86 ms | 107 ms | <300 ms |
+| `/analytics/distribution` | 23 ms | 34 ms | <300 ms |
+| `/analytics/percentiles` | 71 ms | 81 ms | <300 ms |
+| `/analytics/cost-trend` | 198 ms | 239 ms | <300 ms |
+
+All four compute in SQL (window functions / `percentile_cont` on Postgres).
+
