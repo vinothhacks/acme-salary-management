@@ -52,4 +52,4 @@ cd frontend && npm test
 - [ADRs](docs/adr/)
 - [Plan](PLAN.md)
 
-Demo login (after Phase 3): `hr@acme.test` / value of `HR_PASSWORD`.
+Demo login (after Phase 3): `hr@acme.example` / value of `HR_PASSWORD`.

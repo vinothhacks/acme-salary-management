@@ -21,7 +21,7 @@ services:
       DATABASE_URL: postgresql+psycopg://acme:acme@db:5432/acme_salary
       SECRET_KEY: compose-dev-only
       CORS_ORIGINS: http://localhost:5173
-      HR_EMAIL: hr@acme.test
+      HR_EMAIL: hr@acme.example
       HR_PASSWORD: acme-hr-change-me
     ports:
       - "8000:8000"
