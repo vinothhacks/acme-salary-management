@@ -8,7 +8,17 @@ from sqlalchemy.pool import StaticPool
 from app.core.config import Settings
 
 
+def normalize_database_url(url: str) -> str:
+    """Render (and others) hand out postgres://; SQLAlchemy 2 wants postgresql+psycopg://."""
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url.removeprefix("postgres://")
+    if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    return url
+
+
 def make_engine(url: str) -> Engine:
+    url = normalize_database_url(url)
     if url.startswith("sqlite"):
         connect_args = {"check_same_thread": False}
         # StaticPool is required so in-memory DBs share one connection.

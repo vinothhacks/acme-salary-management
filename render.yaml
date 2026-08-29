@@ -1,0 +1,43 @@
+# Render Blueprint — Postgres + FastAPI web service.
+# This is the piece Vercel cannot replace: a long-running process that can
+# migrate, seed 10k rows, and run SQL analytics without a 10s serverless cap.
+#
+# After the Render MCP plugin is authenticated, create these from the Blueprint
+# or `list_workspaces` + create postgres/web service.
+# https://render.com/docs/infrastructure-as-code
+
+databases:
+  - name: acme-salary-db
+    databaseName: acme_salary
+    user: acme
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: acme-salary-api
+    runtime: python
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install .
+    startCommand: python -m app.boot
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acme-salary-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: HR_EMAIL
+        value: hr@acme.example
+      - key: HR_PASSWORD
+        value: acme-hr-change-me
+      - key: SEED_COUNT
+        value: "10000"
+      - key: CORS_ORIGINS
+        sync: false

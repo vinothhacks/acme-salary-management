@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -24,12 +26,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    production = settings.environment == "production"
+    cookie_same_site: Literal["lax", "strict", "none"] = "none" if production else "lax"
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.secret_key,
         session_cookie=settings.session_cookie_name,
-        same_site="lax",
-        https_only=False,
+        same_site=cookie_same_site,
+        https_only=production or settings.session_https_only,
     )
     db_engine = engine or make_engine(settings.database_url)
     app.state.engine = db_engine
