@@ -1,3 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
 from sqlalchemy import text
 
 from app.core.config import Settings
@@ -18,3 +21,18 @@ def test_session_dependency_closes() -> None:
     session = next(gen)
     assert session.execute(text("SELECT 1")).scalar() == 1
     gen.close()
+
+
+def test_file_sqlite_allows_concurrent_sessions(tmp_path: Path) -> None:
+    url = f"sqlite+pysqlite:///{(tmp_path / 'pool.db').resolve().as_posix()}"
+    engine = make_engine(url)
+    factory = make_session_factory(engine)
+
+    def ping() -> int:
+        with factory() as session:
+            return int(session.execute(text("SELECT 1")).scalar_one())
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = [pool.submit(ping) for _ in range(4)]
+        assert [f.result(timeout=5) for f in as_completed(futures)] == [1, 1, 1, 1]
+    engine.dispose()
