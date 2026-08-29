@@ -54,11 +54,11 @@ Table/Query + Recharts. Deploy default remains Railway/Render + Vercel (Phase 7)
 
 **Goal:** Empty-but-running skeleton with quality gates before any feature code.
 
-- [ ] Monorepo: `/backend`, `/frontend`, `/docs`, `/artifacts`, `/scripts`
-- [ ] Backend: app factory, `/health`, pytest+coverage, ruff, mypy
-- [ ] Frontend: Vite+TS scaffold, ESLint/Prettier, Vitest, renders "OK"
-- [ ] GitHub Actions: lint+test both packages on push
-- [ ] `docker-compose.yml`: Postgres + API + UI for local dev; pre-commit hooks
+- [x] Monorepo: `/backend`, `/frontend`, `/docs`, `/artifacts`, `/scripts`
+- [x] Backend: app factory, `/health`, pytest+coverage, ruff, mypy
+- [x] Frontend: Vite+TS scaffold, ESLint/Prettier, Vitest, renders "OK"
+- [x] GitHub Actions: lint+test both packages on push
+- [x] `docker-compose.yml`: Postgres + API + UI for local dev; pre-commit hooks
 
 **Exit:** CI green on trivial tests; `docker compose up` serves health + blank UI.
 
