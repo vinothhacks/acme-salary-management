@@ -10,11 +10,13 @@ from app.core.config import Settings
 
 def make_engine(url: str) -> Engine:
     if url.startswith("sqlite"):
-        return create_engine(
-            url,
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
+        connect_args = {"check_same_thread": False}
+        # StaticPool is required so in-memory DBs share one connection.
+        # File SQLite must not use it — concurrent request threads deadlock
+        # on a single pooled connection (dashboard fires four analytics GETs).
+        if ":memory:" in url:
+            return create_engine(url, connect_args=connect_args, poolclass=StaticPool)
+        return create_engine(url, connect_args=connect_args)
     return create_engine(url, pool_pre_ping=True)
 
 
