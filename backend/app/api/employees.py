@@ -1,6 +1,9 @@
+import csv
+import io
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -62,6 +65,71 @@ async def employees_import(
 ) -> ImportResult:
     raw = (await file.read()).decode("utf-8-sig")
     return import_csv(session, raw)
+
+
+@router.get("/employees/export")
+def employees_export(
+    _: str = Depends(require_user),
+    session: Session = Depends(get_db),
+    q: str | None = None,
+    country: str | None = None,
+    department_id: int | None = None,
+    band: str | None = None,
+    status_filter: str | None = Query(default=None, alias="status"),
+) -> StreamingResponse:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(
+        [
+            "employee_code",
+            "full_name",
+            "email",
+            "country_code",
+            "department",
+            "job_title",
+            "band",
+            "status",
+            "current_base",
+            "currency",
+        ]
+    )
+    page = 1
+    while True:
+        rows, total = list_employees(
+            session,
+            page=page,
+            page_size=100,
+            q=q,
+            country=country,
+            department_id=department_id,
+            band=band,
+            status=status_filter,
+            sort="employee_code",
+        )
+        for employee, department, salary in rows:
+            writer.writerow(
+                [
+                    employee.employee_code,
+                    employee.full_name,
+                    employee.email,
+                    employee.country_code,
+                    department.name,
+                    employee.job_title,
+                    employee.band,
+                    employee.status,
+                    getattr(salary, "base_amount", ""),
+                    getattr(salary, "currency", ""),
+                ]
+            )
+        if page * 100 >= total:
+            break
+        page += 1
+    buffer.seek(0)
+    return StreamingResponse(
+        iter([buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=employees.csv"},
+    )
 
 
 @router.get("/employees", response_model=EmployeePage)
