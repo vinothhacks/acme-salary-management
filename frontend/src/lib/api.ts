@@ -1,4 +1,6 @@
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "/api";
+const envBase = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "");
+// Production uses same-origin /api (Vercel rewrite) so Safari/iOS keeps the session cookie.
+const BASE = import.meta.env.PROD ? "/api" : envBase || "/api";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
