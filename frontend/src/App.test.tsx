@@ -3,13 +3,13 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import App from "./App";
 
-describe("scaffold", () => {
-  it("renders OK", () => {
+describe("app shell", () => {
+  it("renders the login gate", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={["/login"]}>
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("scaffold-ok")).toHaveTextContent("OK");
+    expect(screen.getByRole("heading", { name: "Salary Management" })).toBeInTheDocument();
   });
 });
