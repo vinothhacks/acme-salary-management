@@ -12,3 +12,4 @@ Real prompts and what was accepted, rewritten, or rejected. Evidence of intentio
 | 2026-08-29 | Analytics SQL endpoints | Accepted. SQLite nearest-rank percentiles; cost-trend via date spine + active-pay subquery. |
 | 2026-08-29 | Paper/ink UI for dashboard, directory, detail, import | Accepted custom CSS over full shadcn install to keep the visual system tight. |
 | 2026-08-29 | Dashboard hang on 10k SQLite | File SQLite used StaticPool; four analytics threads deadlocked. Pool only for :memory:. |
+| 2026-08-29 | Playwright + Chrome DevTools budgets | Accepted. LCP/CLS under budget; Lighthouse a11y 93. CI smoke matches MCP flow. |

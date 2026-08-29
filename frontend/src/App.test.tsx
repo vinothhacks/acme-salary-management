@@ -6,7 +6,10 @@ import App from "./App";
 describe("app shell", () => {
   it("renders the login gate", () => {
     render(
-      <MemoryRouter initialEntries={["/login"]}>
+      <MemoryRouter
+        initialEntries={["/login"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>,
     );

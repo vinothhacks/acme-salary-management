@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import FilterBar, { EMPTY_FILTERS, Filters } from "../components/FilterBar";
 import { api } from "../lib/api";
@@ -7,8 +7,17 @@ import { money } from "../lib/format";
 import type { EmployeePage } from "../lib/types";
 
 export default function Employees() {
+  const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setFilters(draft);
+      setPage(1);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [draft]);
   const params = useMemo(() => {
     const search = new URLSearchParams({ page: String(page), page_size: "25", sort: "employee_code" });
     if (filters.q) search.set("q", filters.q);
@@ -22,11 +31,6 @@ export default function Employees() {
     queryKey: ["employees", params.toString()],
     queryFn: () => api.employees(params) as Promise<EmployeePage>,
   });
-
-  function changeFilters(next: Filters) {
-    setFilters(next);
-    setPage(1);
-  }
 
   return (
     <section>
@@ -44,12 +48,13 @@ export default function Employees() {
           </a>
         </div>
       </header>
-      <FilterBar value={filters} onChange={changeFilters} />
+      <FilterBar value={draft} onChange={setDraft} />
       {list.isLoading ? <p className="muted">Loading people…</p> : null}
       {list.isError ? <p className="banner error">The directory could not be loaded.</p> : null}
       {list.data && list.data.items.length === 0 ? <p className="muted">No one matches those filters.</p> : null}
       {list.data && list.data.items.length > 0 ? (
         <>
+          <div className="table-wrap">
           <table>
             <thead>
               <tr>
@@ -78,6 +83,7 @@ export default function Employees() {
               ))}
             </tbody>
           </table>
+          </div>
           <div className="pager">
             <button type="button" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
               Previous
