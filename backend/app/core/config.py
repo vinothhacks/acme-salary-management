@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     hr_email: str = "hr@acme.example"
     hr_password: str = "acme-hr-change-me"
     session_https_only: bool = False
+    openrouter_api_key: str = ""
+    mistral_api_key: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -8,6 +8,7 @@ from sqlalchemy.exc import OperationalError
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.analytics import router as analytics_router
+from app.api.ask import router as ask_router
 from app.api.auth import router as auth_router
 from app.api.employees import router as employees_router
 from app.api.health import router as health_router
@@ -44,6 +45,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     app.include_router(auth_router)
     app.include_router(employees_router)
     app.include_router(analytics_router)
+    app.include_router(ask_router)
 
     @app.exception_handler(OperationalError)
     async def database_unavailable(_request: Request, _exc: OperationalError) -> JSONResponse:
