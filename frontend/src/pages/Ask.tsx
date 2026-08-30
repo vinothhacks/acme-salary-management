@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { navPathFromMessage } from "../lib/askNav";
 import { renderAction, type UiAction } from "../lib/chartRegistry";
 
 type Turn = {
@@ -16,19 +17,25 @@ export default function Ask() {
   const [error, setError] = useState<string | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const end = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    end.current?.scrollIntoView({ behavior: "smooth" });
+    end.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [turns, busy]);
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    const message = text.trim();
+  async function send(message: string) {
     if (!message || busy) return;
     setText("");
     setBusy(true);
     setError(null);
     setTurns((prev) => [...prev, { role: "user", say: message, actions: [] }]);
+    const path = navPathFromMessage(message);
+    if (path) {
+      setTurns((prev) => [...prev, { role: "assistant", say: "Opening that page.", actions: [] }]);
+      setBusy(false);
+      navigate(path);
+      return;
+    }
     try {
       const history = turns
         .filter((turn) => turn.role === "user" || turn.role === "assistant")
@@ -47,7 +54,13 @@ export default function Ask() {
       setError("Ask could not reach the ledger. Try again.");
     } finally {
       setBusy(false);
+      box.current?.focus();
     }
+  }
+
+  function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    void send(text.trim());
   }
 
   return (
@@ -56,7 +69,7 @@ export default function Ask() {
         <div>
           <p className="eyebrow">Ask</p>
           <h1>Ask the ledger</h1>
-          <p className="lede">Charts switch by function: bar, line, pie, table. “Go to dashboard” opens that page.</p>
+          <p className="lede">Type a question and press Enter. “Go to dashboard” opens that page.</p>
         </div>
       </header>
       <div className="ask-log">
@@ -79,17 +92,17 @@ export default function Ask() {
       </div>
       {error ? <p className="banner error">{error}</p> : null}
       <form className="ask-form" onSubmit={onSubmit}>
-        <label>
-          Question
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={2}
-            placeholder="Show mean pay by country"
-          />
-        </label>
+        <input
+          ref={box}
+          aria-label="Question"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Ask the ledger…"
+          autoComplete="off"
+          disabled={busy}
+        />
         <button type="submit" disabled={busy}>
-          {busy ? "Asking…" : "Ask"}
+          {busy ? "…" : "Send"}
         </button>
       </form>
     </section>

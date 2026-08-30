@@ -50,6 +50,28 @@ def test_keyword_go_to_dashboard() -> None:
     plan = keyword_plan("go to the dashboard")
     assert plan["actions"][0]["fn"] == "navigateTo"
     assert plan["actions"][0]["path"] == "/"
+    assert plan["specific"] is True
+
+
+INTENTS = [
+    ("go to dashboard", "navigateTo"),
+    ("go to the dashboard", "navigateTo"),
+    ("go to employees", "navigateTo"),
+    ("go to import", "navigateTo"),
+    ("pay distribution", "barChart"),
+    ("mean pay IN vs US", "barChart"),
+    ("cost over time", "lineChart"),
+    ("percentiles by band", "table"),
+    ("share of headcount", "pieChart"),
+    ("mean pay by department", "barChart"),
+]
+
+
+def test_ten_intents_are_specific() -> None:
+    for message, fn in INTENTS:
+        plan = keyword_plan(message)
+        assert plan["specific"] is True, message
+        assert plan["actions"][0]["fn"] == fn, message
 
 
 def test_ask_navigates_to_dashboard(auth_client: TestClient, session: Session) -> None:
@@ -58,6 +80,53 @@ def test_ask_navigates_to_dashboard(auth_client: TestClient, session: Session) -
     assert body["actions"][0]["fn"] == "navigateTo"
     assert body["actions"][0]["path"] == "/"
 
+
+def test_specific_intents_skip_llm(
+    auth_client: TestClient, session: Session, monkeypatch: object
+) -> None:
+    _seed(session)
+
+    def boom(*_a: object, **_k: object) -> dict:
+        raise AssertionError("llm should not run for known intents")
+
+    monkeypatch.setattr("app.services.ask.llm_plan", boom)
+    history = [
+        {"role": "user", "content": "mean pay IN vs US"},
+        {"role": "assistant", "content": "Here is what the ledger shows."},
+    ]
+    for message, fn in INTENTS:
+        body = auth_client.post(
+            "/ask/chat", json={"message": message, "history": history}
+        ).json()
+        assert body["actions"][0]["fn"] == fn, message
+        if fn == "navigateTo":
+            assert body["actions"][0]["path"] in {"/", "/employees", "/import"}
+        else:
+            assert body["actions"][0]["rows"]
+
+
+def test_pay_distribution_after_compare_history(
+    auth_client: TestClient, session: Session, monkeypatch: object
+) -> None:
+    _seed(session)
+    monkeypatch.setattr(
+        "app.services.ask.llm_plan",
+        lambda *_a, **_k: {
+            "say": "Here is what the ledger shows.",
+            "actions": [{"fn": "barChart", "source": "by_country", "title": "Mean USD by country"}],
+        },
+    )
+    body = auth_client.post(
+        "/ask/chat",
+        json={
+            "message": "pay distribution",
+            "history": [
+                {"role": "user", "content": "mean pay IN vs US"},
+                {"role": "assistant", "content": "Here is what the ledger shows."},
+            ],
+        },
+    ).json()
+    assert body["actions"][0]["title"] == "Pay distribution"
 
 def test_ask_compare_countries_bar(auth_client: TestClient, session: Session) -> None:
     _seed(session)

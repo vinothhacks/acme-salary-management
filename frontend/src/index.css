@@ -134,10 +134,34 @@ th { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; colo
   .stat-row, .filters { grid-template-columns: 1fr; }
 }
 
-.ask-page { display: grid; gap: 1rem; }
-.ask-log { display: grid; gap: 0.85rem; min-height: 12rem; }
+.ask-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 4rem);
+  gap: 0.75rem;
+}
+.ask-log {
+  display: grid;
+  gap: 0.85rem;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 8rem;
+  padding-bottom: 0.5rem;
+}
 .ask-bubble { background: var(--surface); border: 1px solid var(--rule); padding: 0.85rem 1rem; }
 .ask-bubble.user { background: transparent; }
 .ask-bubble p { margin: 0 0 0.75rem; }
-.ask-form { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: end; }
-.ask-form button { min-height: 2.75rem; }
+.ask-form {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  background: var(--paper);
+  padding: 0.65rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rule);
+  z-index: 2;
+}
+.ask-form input { min-height: 2.75rem; }
+.ask-form button { min-height: 2.75rem; min-width: 4.5rem; }

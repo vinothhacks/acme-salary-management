@@ -76,13 +76,17 @@ def keyword_plan(message: str) -> dict[str, Any]:
     lower = text.lower()
     actions: list[dict[str, Any]] = []
     navigating = bool(re.search(r"\b(go to|open|take me to|navigate)\b", lower))
+    specific = False
 
-    if re.search(r"\b(dashboard|board)\b", lower) and navigating:
+    if re.search(r"\b(dashboard|board|home)\b", lower) and navigating:
         actions.append({"fn": "navigateTo", "path": "/"})
+        specific = True
     elif re.search(r"\bemployees\b", lower) and navigating:
         actions.append({"fn": "navigateTo", "path": "/employees"})
+        specific = True
     elif re.search(r"\bimport\b", lower) and navigating:
         actions.append({"fn": "navigateTo", "path": "/import"})
+        specific = True
 
     codes = _countries_in(text)
     if re.search(r"\b(distribution|histogram|bucket|pay spread|spread of pay)\b", lower):
@@ -96,14 +100,17 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = "Pay distribution from current compensation rows."
+        specific = True
     elif re.search(r"\b(trend|over time|cost over|history of cost)\b", lower):
         actions.append({"fn": "lineChart", "source": "cost_trend", "title": "Cost over time"})
         say = "Annual cost in USD over effective-dated history."
+        specific = True
     elif re.search(r"\b(percentile|p10|p50|p90|by band)\b", lower):
         actions.append(
             {"fn": "table", "source": "percentiles_band", "title": "Percentiles by band"}
         )
         say = "Percentiles of current USD pay by band."
+        specific = True
     elif re.search(r"\bpie\b", lower) or re.search(r"\bshare of (people|headcount)\b", lower):
         actions.append(
             {
@@ -114,6 +121,7 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = "Headcount share by country."
+        specific = True
     elif len(codes) >= 2 or re.search(r"\b(vs|versus|compared?|compare)\b", lower):
         pair = codes[:2] if len(codes) >= 2 else ["IN", "US"]
         actions.append(
@@ -126,6 +134,7 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = f"Mean current pay in USD for {' and '.join(pair)}."
+        specific = True
     elif re.search(r"\bdepartment\b", lower):
         actions.append(
             {
@@ -136,6 +145,7 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = "Mean current pay by department."
+        specific = True
     elif re.search(r"\bemployee(s)? list\b|\bwho is in\b", lower):
         actions.append(
             {
@@ -146,6 +156,7 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = "First page of the employee list for that filter."
+        specific = True
     elif navigating and actions:
         say = "Opening that page."
     else:
@@ -175,13 +186,13 @@ def keyword_plan(message: str) -> dict[str, Any]:
             }
         )
         say = "Mean current pay in USD by country."
-    return {"say": say, "actions": actions}
+    return {"say": say, "actions": actions, "specific": specific}
 
 
 def _http_json(url: str, payload: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
     body = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=body, method="POST", headers=headers)
-    with urllib.request.urlopen(req, timeout=45) as resp:
+    with urllib.request.urlopen(req, timeout=8) as resp:
         return json.loads(resp.read().decode())
 
 
@@ -234,11 +245,12 @@ def llm_plan(message: str, history: list[AskTurn], settings: Settings) -> dict[s
         messages.append({"role": turn.role, "content": turn.content})
     messages.append({"role": "user", "content": message})
     if settings.openrouter_api_key:
-        for model in OPENROUTER_MODELS:
-            try:
-                return _complete_openrouter(settings.openrouter_api_key, model, messages)
-            except LLM_ERRORS:
-                continue
+        try:
+            return _complete_openrouter(
+                settings.openrouter_api_key, OPENROUTER_MODELS[0], messages
+            )
+        except LLM_ERRORS:
+            pass
     if settings.mistral_api_key:
         try:
             return _complete_mistral(settings.mistral_api_key, messages)
@@ -396,7 +408,9 @@ def answer(
     history: list[AskTurn],
     settings: Settings,
 ) -> tuple[str, list[UiAction], str | None]:
-    plan = llm_plan(message, history, settings)
-    if plan is None:
-        plan = keyword_plan(message)
+    plan = keyword_plan(message)
+    if not plan.get("specific"):
+        llm = llm_plan(message, history, settings)
+        if llm is not None:
+            plan = llm
     return hydrate(session, plan)
