@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.schemas.ask import AskTurn, UiAction
+from app.schemas.ask import AskTurn, UiAction, UiFn
 from app.services import analytics as analytics_svc
 from app.services.employees import list_employees
 
@@ -49,8 +49,8 @@ SYSTEM = (
 
 
 def _ui_chart(fn: str, title: str, rows: list[dict[str, Any]]) -> UiAction:
-    chart: str = fn if fn in {"barChart", "pieChart"} else "barChart"
-    return UiAction(fn=chart, title=title, rows=rows)  # type: ignore[arg-type]
+    chart: UiFn = "pieChart" if fn == "pieChart" else "barChart"
+    return UiAction(fn=chart, title=title, rows=rows)
 
 
 def _num(value: object) -> float:
@@ -193,7 +193,10 @@ def _http_json(url: str, payload: dict[str, Any], headers: dict[str, str]) -> di
     body = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=body, method="POST", headers=headers)
     with urllib.request.urlopen(req, timeout=8) as resp:
-        return json.loads(resp.read().decode())
+        parsed = json.loads(resp.read().decode())
+        if not isinstance(parsed, dict):
+            raise ValueError("json not object")
+        return parsed
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -310,14 +313,14 @@ def hydrate(session: Session, plan: dict[str, Any]) -> tuple[str, list[UiAction]
             data = analytics_svc.distribution(session, country=country_s, band=band, status=status)
             buckets = data["buckets"] if isinstance(data["buckets"], list) else []
             rows = [
-                {"name": str(row["bucket_usd"]), "value": int(row["count"])}  # type: ignore[index]
+                {"name": str(row["bucket_usd"]), "value": int(row["count"])}
                 for row in buckets
             ]
             filled.append(_ui_chart(fn, title, rows))
         elif source == "cost_trend":
             data = analytics_svc.cost_trend(session)
             points = data["points"] if isinstance(data["points"], list) else []
-            rows = [{"name": str(row["as_of"]), "value": _num(row["total_usd"])} for row in points]  # type: ignore[index]
+            rows = [{"name": str(row["as_of"]), "value": _num(row["total_usd"])} for row in points]
             filled.append(UiAction(fn="lineChart", title=title, rows=rows))
         elif source in {"percentiles_band", "percentiles_country"}:
             data = analytics_svc.percentiles(session, country=country_s, band=band, status=status)
@@ -384,16 +387,16 @@ def hydrate(session: Session, plan: dict[str, Any]) -> tuple[str, list[UiAction]
             if source == "compare_countries" and codes:
                 countries = summary["by_country"]
                 by_country = countries if isinstance(countries, list) else []
-                wanted = {row["key"]: row for row in by_country if str(row["key"]) in codes}  # type: ignore[index]
+                wanted = {row["key"]: row for row in by_country if str(row["key"]) in codes}
                 selected = [wanted[code] for code in codes if code in wanted]
-                rows = _metric_rows(selected, metric)  # type: ignore[arg-type]
+                rows = _metric_rows(selected, metric)
                 filled.append(_ui_chart(fn, title, rows))
             else:
                 group = (
                     summary["by_department"] if source == "by_department" else summary["by_country"]
                 )
                 group_list = group if isinstance(group, list) else []
-                rows = _metric_rows(group_list, metric)  # type: ignore[arg-type]
+                rows = _metric_rows(group_list, metric)
                 filled.append(_ui_chart(fn, title, rows))
             if source == "by_country" and not any(a.fn == "table" for a in filled):
                 say = f"{say} Headcount {summary['headcount']}, mean USD {summary['mean_usd']}."
