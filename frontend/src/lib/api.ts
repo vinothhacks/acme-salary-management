@@ -1,3 +1,5 @@
+import type { UiAction } from "./chartRegistry";
+
 const envBase = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "");
 // Production uses same-origin /api (Vercel rewrite) so Safari/iOS keeps the session cookie.
 const BASE = import.meta.env.PROD ? "/api" : envBase || "/api";
@@ -53,4 +55,9 @@ export const api = {
   distribution: () => request("/analytics/distribution"),
   percentiles: () => request("/analytics/percentiles"),
   costTrend: () => request("/analytics/cost-trend"),
+  ask: (message: string, history: { role: "user" | "assistant"; content: string }[]) =>
+    request<{ say: string; actions: UiAction[]; model: string | null }>("/ask/chat", {
+      method: "POST",
+      body: JSON.stringify({ message, history }),
+    }),
 };

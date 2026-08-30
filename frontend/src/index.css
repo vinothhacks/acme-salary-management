@@ -133,3 +133,11 @@ th { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; colo
 @media (max-width: 420px) {
   .stat-row, .filters { grid-template-columns: 1fr; }
 }
+
+.ask-page { display: grid; gap: 1rem; }
+.ask-log { display: grid; gap: 0.85rem; min-height: 12rem; }
+.ask-bubble { background: var(--surface); border: 1px solid var(--rule); padding: 0.85rem 1rem; }
+.ask-bubble.user { background: transparent; }
+.ask-bubble p { margin: 0 0 0.75rem; }
+.ask-form { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: end; }
+.ask-form button { min-height: 2.75rem; }

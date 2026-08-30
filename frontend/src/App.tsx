@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { api } from "./lib/api";
+import Ask from "./pages/Ask";
 import Dashboard from "./pages/Dashboard";
 import EmployeeDetail from "./pages/EmployeeDetail";
 import Employees from "./pages/Employees";
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="employees/new" element={<NewEmployee />} />
           <Route path="employees/:id" element={<EmployeeDetail />} />
           <Route path="import" element={<ImportPage />} />
+          <Route path="ask" element={<Ask />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
